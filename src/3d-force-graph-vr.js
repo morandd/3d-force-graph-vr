@@ -4,12 +4,11 @@ import 'aframe';
 //import 'aframe-line-component';
 import './aframe-line-component';
 
-import * as d3Core from 'd3';
-import * as d3Force from 'd3-force-3d';
-import { default as extend } from 'lodash/assign';
-let d3 = {};
-extend(d3, d3Core, d3Force);
+import graph from 'ngraph.graph';
+import forcelayout3d from 'ngraph.forcelayout3d';
+const ngraph = { graph, forcelayout3d };
 
+import * as d3 from 'd3';
 import * as SWC from 'swc';
 
 //
