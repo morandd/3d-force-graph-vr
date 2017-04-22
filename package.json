@@ -34,8 +34,8 @@
     "aframe": "^0.5",
     "aframe-line-component": "^1.0",
     "d3": "^4.8",
-    "ngraph.forcelayout3d": "0.0.16",
-    "ngraph.graph": "0.0.12",
+    "ngraph.forcelayout3d": "~0.0.16",
+    "ngraph.graph": "~0.0.12",
     "swc": "^0.1"
   },
   "devDependencies": {
