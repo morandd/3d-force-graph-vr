@@ -69,14 +69,20 @@ export default SWC.createComponent({
 			.attr('value', '');
 
 		// Add force-directed layout
-		state.forceLayout = d3.forceSimulation()
-			.force('link', d3.forceLink().id(d => d._id))
-			.force('charge', d3.forceManyBody())
-			.force('center', d3.forceCenter())
-			.stop();
+		state.forceLayoutGraph = ngraph.graph();
+		state.forceLayout = ngraph.forcelayout3d(state.forceLayoutGraph);
+
+		// Setup ticker
+		(function frameTick() { // IIFE
+			if (state.onFrame) state.onFrame();
+			requestAnimationFrame(frameTick);
+		})();
+
 	},
 
 	update: state => {
+		state.onFrame = null; // Pause simulation
+
 		// Build graph with data
 		const d3Nodes = [];
 		for (let nodeId in state.graphData.nodes) { // Turn nodes into array
@@ -125,33 +131,36 @@ export default SWC.createComponent({
 		);
 
 		// Feed data to force-directed layout
-		state.forceLayout
-			.stop()
-			.alpha(1)// re-heat the simulation
-			.alphaDecay(state.alphaDecay)
-			.velocityDecay(state.velocityDecay)
-			.numDimensions(state.numDimensions)
-			.nodes(d3Nodes)
-			.force('link').links(d3Links);
+		state.forceLayoutGraph.clear();
+		for (let node of d3Nodes) { state.forceLayoutGraph.addNode(node._id); }
+		for (let link of d3Links) { state.forceLayoutGraph.addLink(link.source, link.target); }
 
-		for (let i=0; i<state.warmUpTicks; i++) { state.forceLayout.tick(); } // Initial ticks before starting to render
+		for (let i=0; i<state.warmUpTicks; i++) { state.forceLayout.step(); } // Initial ticks before starting to render
 
 		let cntTicks = 0;
 		const startTickTime = new Date();
-		state.forceLayout.on("tick", layoutTick).restart();
+		state.onFrame = layoutTick;
 
 		//
 
 		function layoutTick() {
 			if (cntTicks++ > state.coolDownTicks || (new Date()) - startTickTime > state.coolDownTime) {
-				state.forceLayout.stop(); // Stop ticking graph
+				state.onFrame = null; // Stop ticking graph
 			}
 
+			state.forceLayout.step(); // Tick it
+
 			// Update nodes position
-			nodes.attr('position', d => `${d.x} ${d.y || 0} ${d.z || 0}`);
+			nodes.attr('position', d => {
+				const pos = state.forceLayout.getNodePosition(d._id);
+				return `${pos.x} ${pos.y || 0} ${pos.z || 0}`;
+			});
 
 			//Update links position
-			links.attr('line', d => `start: ${d.source.x} ${d.source.y || 0} ${d.source.z || 0};  end: ${d.target.x} ${d.target.y || 0} ${d.target.z || 0}`);
+			links.attr('line', d => {
+				const pos = state.forceLayout.getLinkPosition(state.forceLayoutGraph.getLink(d.source, d.target).id);
+				return `start: ${pos.from.x} ${pos.from.y || 0} ${pos.from.z || 0};  end: ${pos.to.x} ${pos.to.y || 0} ${pos.to.z || 0}`;
+			});
 		}
 	}
 });
