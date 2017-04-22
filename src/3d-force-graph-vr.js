@@ -66,10 +66,6 @@ export default SWC.createComponent({
 			.attr('color', 'lavender')
 			.attr('value', '');
 
-		// Add force-directed layout
-		state.forceLayoutGraph = ngraph.graph();
-		state.forceLayout = ngraph.forcelayout3d(state.forceLayoutGraph);
-
 		// Setup ticker
 		(function frameTick() { // IIFE
 			if (state.onFrame) state.onFrame();
@@ -128,12 +124,13 @@ export default SWC.createComponent({
 				.attr('line', `color: #f0f0f0; opacity: ${state.lineOpacity}`)
 		);
 
-		// Feed data to force-directed layout
-		state.forceLayoutGraph.clear();
-		for (let node of d3Nodes) { state.forceLayoutGraph.addNode(node._id); }
-		for (let link of d3Links) { state.forceLayoutGraph.addLink(link.source, link.target); }
+		// Add force-directed layout
+		const graph = ngraph.graph();
+		for (let node of d3Nodes) { graph.addNode(node._id); }
+		for (let link of d3Links) { graph.addLink(link.source, link.target); }
+		const layout = ngraph.forcelayout3d(graph);
 
-		for (let i=0; i<state.warmUpTicks; i++) { state.forceLayout.step(); } // Initial ticks before starting to render
+		for (let i=0; i<state.warmUpTicks; i++) { layout.step(); } // Initial ticks before starting to render
 
 		let cntTicks = 0;
 		const startTickTime = new Date();
@@ -146,17 +143,17 @@ export default SWC.createComponent({
 				state.onFrame = null; // Stop ticking graph
 			}
 
-			state.forceLayout.step(); // Tick it
+			layout.step(); // Tick it
 
 			// Update nodes position
 			nodes.attr('position', d => {
-				const pos = state.forceLayout.getNodePosition(d._id);
+				const pos = layout.getNodePosition(d._id);
 				return `${pos.x} ${pos.y || 0} ${pos.z || 0}`;
 			});
 
 			//Update links position
 			links.attr('line', d => {
-				const pos = state.forceLayout.getLinkPosition(state.forceLayoutGraph.getLink(d.source, d.target).id);
+				const pos = layout.getLinkPosition(graph.getLink(d.source, d.target).id);
 				return `start: ${pos.from.x} ${pos.from.y || 0} ${pos.from.z || 0};  end: ${pos.to.x} ${pos.to.y || 0} ${pos.to.z || 0}`;
 			});
 		}
