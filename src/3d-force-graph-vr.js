@@ -1,8 +1,7 @@
 import './3d-force-graph-vr.css';
 
 import 'aframe';
-//import 'aframe-line-component';
-import './aframe-line-component';
+import 'aframe-line-component';
 
 import graph from 'ngraph.graph';
 import forcelayout3d from 'ngraph.forcelayout3d';
