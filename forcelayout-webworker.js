@@ -10,7 +10,6 @@ onmessage = function(event) {
   var nodes = event.data.nodes,
       links = event.data.links;
 
-  console.log("ello from worker");
   var simulation = d3_force.forceSimulation(nodes)
 		.numDimensions(3)
 		.force("charge", d3_force.forceManyBody())
@@ -19,22 +18,23 @@ onmessage = function(event) {
 		.force("x", d3_force.forceX())
 		.force("y", d3_force.forceY())
 		.force("z", d3_force.forceZ()) 
-		.numDimensions(3);
-//		.stop();
+		.numDimensions(3)
+		.stop();
 
-  console.log("proceeding");
-  /*
+  
   for (var i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n && i<10; ++i) {
     postMessage({type: "tick", progress: i / n});
-  console.log("tick " + i);
+    console.log("tick " + i);
     simulation.tick();
   }
-*/
-  console.log("worker got goodbye 1");
+  
   simulation.stop();
   
-  console.log(nodes[0]);
-  console.log("worker got goodbye 2");
-  console.log(nodes[0]);
+	// DEBUG:
+  console.log("worker finished simulation");
+  console.log('This should NOT be NaN:');
+  console.log(nodes[0].z);
+  
+  
   postMessage({type: "end", nodes: nodes, links: links});
 };

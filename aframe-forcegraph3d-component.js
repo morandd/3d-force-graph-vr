@@ -78,9 +78,10 @@ function forceLayoutComplete(el, data) {
 	data.nodes.forEach( node => {node.fx*=thisObject.width; node.fy*=thisObject.height; node.fz*=thisObject.depth;});
 	
 	
-	let nodes = d3.select('a-scene').selectAll('a-icosahedron.node').data(data.nodes, d=> d._id);
+	let nodes = d3.select('a-scene').selectAll('a-sphere.node').data(data.nodes, d=> d._id);
 	nodes.exit().remove();
 	
+	// Shall we construct node labels?
 	nodelabels = null;
 	if (data.nodes[0]["name"]) {
 		nodelabels = d3.select('a-scene').selectAll('a-entity.nodelabel').data(data.nodes, d=> d._id);
@@ -98,15 +99,15 @@ function forceLayoutComplete(el, data) {
 	} else {
 		nodes = nodes.merge(
 			nodes.enter()
-				.append('a-icosahedron')
+				.append('a-sphere')
 				.classed('node', true)
-//				.attr('segments-width', 8)	// Lower geometry resolution to improve perf
-//				.attr('segments-height', 8)
+				.attr('segments-width', 8)	// Lower geometry resolution to improve perf
+				.attr('segments-height', 8)
 				.attr('radius', d => Math.cbrt(thisObject.valAccessor(d) || 1) * thisObject.nodeRelSize)
 				.attr('color', d =>  '' + (thisObject.colorAccessor(d) || thisObject.defaultNodeColor).toString(16))
-				.attr('position', d => [d.fx, d.fy, d.fz].join(" "))
-				.attr('fog', false)
-				.attr('roughness', '1')
+				// See below about fx vs. x
+				.attr('position', d => [d.x, d.y, d.z].join(" "))
+				//.attr('position', d => [d.fx, d.fy, d.fz].join(" "))
 				.attr('opacity', 0.75)
 		);
 		if (nodelabels)
@@ -115,11 +116,10 @@ function forceLayoutComplete(el, data) {
 					.append('a-entity')
 					.classed('nodelabel', true)
 					.attr('text', d => "value:" + d.name + "; color:#f00; align:left")
-					.attr('position', d => [d.fx, d.fy, d.fz].join(" "))
+					.attr('position', d => [d.x, d.y, d.z].join(" "))
 			);
 	}
 	
-//	nodes.attr('position', d => [d.fx, d.fy, d.fz].join(" "))
 	
 
 	let links = d3.select('a-scene').selectAll('a-entity.link').data(data.links, d => d._id);
@@ -129,13 +129,11 @@ function forceLayoutComplete(el, data) {
 	links.enter()
 		.append('a-entity')
 		.classed('link', true)
-		.attr('linebad', 'color: #f0f0f0; opacity: 0.7')
-		.attr('line', `color: #f0f0f0; opacity: ${thisObject.lineOpacity}`)
-		.attr('line3', 'test:test')
-		//.attr('line', `color: #f0f0f0; opacity: ${state.lineOpacity}`)
+		// For testing, I am using fx, fy, fz. NOTE: these should be left untocuhed during the layout process, but actually they are ignored?!
+		.attr('line', d => `color: #f0f0f0; opacity: ${thisObject.lineOpacity}; start: ${d.source.fx} ${d.source.fy || 0} ${d.source.fz || 0};  end: ${d.target.fx} ${d.target.fy || 0} ${d.target.fz || 0}`)
+		.attr('line', d => `color: #f0f0f0; opacity: ${thisObject.lineOpacity}; start: ${d.source.x} ${d.source.y || 0} ${d.source.z || 0};  end: ${d.target.x} ${d.target.y || 0} ${d.target.z || 0}`)
 	);
 	
-	links.attr('line', d => `start: ${d.source.fx} ${d.source.fy || 0} ${d.source.fz || 0};  end: ${d.target.fx} ${d.target.fy || 0} ${d.target.fz || 0}`);
 		
 }
 
@@ -148,6 +146,7 @@ function buildMyself(el, data) {
 
 		json.nodes.forEach(node => { json.nodes[node.id] = node }); // Index by ID field
 
+		// For testing. Once this is working, it's good to only use the web worker.
 		var USE_WEB_WORKER=1;
 		
 		if (USE_WEB_WORKER) {
@@ -177,16 +176,11 @@ function buildMyself(el, data) {
 				.force('center', d3_force.forceCenter())
 				.force("x", d3_force.forceX())
 				.force("y", d3_force.forceY())
-				.force("z", d3_force.forceZ()) 
+				.force("z", d3_force.forceZ())  // When I run this, .z becomes NaN at the first simulation tick.
 				.numDimensions(3);
-				/*
-			for (var i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n && i<10; ++i) {
-				console.log("tick " + i);
-				simulation.tick();
-			}
-
-			simulation.stop();
-*/			forceLayoutComplete(el,{nodes: json.nodes, links: json.links})
+			
+			// Render the graph:
+			forceLayoutComplete(el,{nodes: json.nodes, links: json.links})
   
 		} // USE web worker or not?
   
