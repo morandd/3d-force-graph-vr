@@ -1,0 +1,37 @@
+
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>My A-Frame Scene</title>
+  <script src="https://aframe.io/releases/0.5.0/aframe.min.js"></script> 
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+
+ <script src="https://unpkg.com/aframe-line-component/dist/aframe-line-component.min.js"></script>
+
+ <script src="//unpkg.com/d3-force-3d@1.0/build/d3-force-3d.bundle.min.js"></script>
+ <script src="aframe-forcegraph3d-component.js"></script>
+  
+
+</head>
+ 
+<body>
+<a-scene >
+
+
+      <a-assets>
+		<a-asset-item id="sampledata" src="mrio2.json"></a-asset-item>
+	  </a-assets>
+
+	<a-sky color="rgb(155,155,155)"></a-sky>
+
+	<a-forcegraph3d src="#sampledata"></a-forcegraph3d>
+
+	
+	<a-entity camera="" look-controls wasd-controls="fly:true" position="3 5  9" ></a-entity>
+
+	
+</a-scene>
+
+
+</body>
+</html>
