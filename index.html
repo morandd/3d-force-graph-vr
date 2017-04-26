@@ -7,7 +7,27 @@
   <script src="https://d3js.org/d3.v4.min.js"></script>
 
  <script src="https://unpkg.com/aframe-line-component/dist/aframe-line-component.min.js"></script>
+ 
+ <script src="https://rawgit.com/blairmacintyre/aframe-look-at-billboard-component/master/dist/aframe-look-at-billboard-component.min.js"></script>
 
+ <script src="three_lambertoon_c.js"></script>
+ 
+ <script>
+ AFRAME.registerComponent('lambertoon-material', {
+   	schema: {
+		dummy: 			{ type: 'number', default: 1 },
+	},
+  update: function () {
+    var texmap1 = THREE.ImageUtils.loadTexture( "disc.png" );
+	texmap1.wrapS = texmap1.wrapT = THREE.ClampToEdgeWrapping;
+	texmap1.needsUpdate = true;
+	
+    this.material = new THREE.MeshLambertMaterial( {color:0x0000ff, shading: THREE.SmoothShading , map:texmap1});
+  }
+});
+</script>
+
+  
  <script src="//unpkg.com/d3-force-3d@1.0/build/d3-force-3d.bundle.min.js"></script>
  <script src="aframe-forcegraph3d-component.js"></script>
   
@@ -19,15 +39,26 @@
 
 
       <a-assets>
-		<a-asset-item id="sampledata" src="miserables.json"></a-asset-item>
+		<a-asset-item id="sampledata" src="mrio2.json"></a-asset-item>
+		<a-asset-item id="sampledata2" src="miserables.json"></a-asset-item>
 	  </a-assets>
 
 	<a-sky color="rgb(155,155,155)"></a-sky>
 
-	<a-forcegraph3d src="#sampledata"></a-forcegraph3d>
-
+	<a-forcegraph3d width="3"  nodeMaxSize=".2" defaultNodeColor="rgb(255,128,0)"  labelColor="rgb(0,100,0)" labelScaleFactor=".5" src="#sampledata2" ></a-forcegraph3d>
 	
-	<a-entity camera="" look-controls wasd-controls="fly:true" position="3 5  9" ></a-entity>
+	<!-- XYZ axis -->
+	<a-entity line="start:0 0 0; end: 3 0 0; color:red"></a-entity>
+	<a-entity line="start:0 0 0; end: 0 3 0; color:green"></a-entity>aaa
+	<a-entity line="start:0 0 0; end: 0 0 3; color:blue"></a-entity>
+
+	<!--
+	<a-box color="tomato" depth="0.01" height="3" width="3"></a-box>
+	<a-light color="white" position="0 2 6"></a-light>
+-->
+	
+	<a-entity camera="" look-controls wasd-controls="fly:true" position="0 2  6" >
+	</a-entity>
 
 	
 </a-scene>
